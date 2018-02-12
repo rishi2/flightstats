@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# retailer
+main() {
+  local image="gcr.io/polaris-dev/${SEMAPHORE_PROJECT_NAME}"
+
+  docker build -t $image .
+
+  source ${SEMAPHORE_CACHE_DIR}/google-cloud-sdk/path.bash.inc
+  gcloud docker -- push $image
+  gcloud beta container images add-tag ${image} ${image}:${REVISION} -q
+  sed -i "s/<<REVISION>>/$REVISION/g" ci/retailer.yml
+
+  kubectl get deployment retailer-db >/dev/null 2>&1 \
+    || kubectl apply -f ci/db.yml
+
+  kubectl apply -f ci/db-lb.yml
+
+  kubectl apply -f ci/retailer.yml
+
+  kubectl apply -f ci/retailer-lb.yml
+
+  kubectl get pods
+
+  kubectl get services
+}
+
+main "$@"

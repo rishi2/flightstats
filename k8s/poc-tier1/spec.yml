@@ -1,0 +1,163 @@
+---
+# DO NOT EDIT
+# Automatically generated from the following template in wrsinc/etc:
+# https://github.com/wrsinc/etc/blob/master/roles/docker/templates/spec.yml.j2
+
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: retailer
+  name: retailer
+spec:
+  finalizers:
+    - kubernetes
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: retailer
+  name: retailer
+  namespace: retailer
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: retailer
+  strategy:
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: retailer
+      name: retailer
+    spec:
+      containers:
+        - name: app
+          image: gcr.io/poc-tier1/retailer:latest
+          imagePullPolicy: Always
+          env:
+            - name: NEW_RELIC_APP_NAME
+              value: Retailer
+            - name: NEW_RELIC_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: new-relic
+                  key: license-key
+            - name: GRPC_PORT
+              value: "8120"
+            - name: SERVER_PORT
+              value: "8121"
+            - name: DB_CONN_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: db-connection-string
+            - name: DATASOURCE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: db-connection-string
+            - name: RETAILER_DATASOURCE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: db-connection-string
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
+            - name: SPRING_PROFILES
+              value: prod
+            - name: DDL_AUTO
+              value: create-drop
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: LOG_LEVEL_ROOT
+              value: INFO
+            - name: RECEIPT_HOST
+              value: "app.receipt"
+            - name: RECEIPT_PORT
+              value: "8060"
+            - name: ORDER_HOST
+              value: "app.order"
+            - name: ORDER_PORT
+              value: "8065"
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.09
+          imagePullPolicy: IfNotPresent
+          command:
+            - /cloud_sql_proxy
+            - --dir=/cloudsql
+            - -instances=poc-tier1:us-west1:retailer=tcp:5432
+            - -credential_file=/secrets/cloudsql/credentials.json
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+            - name: cloudsql
+              mountPath: /cloudsql
+            - name: ssl-certs
+              mountPath: /etc/ssl/certs
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: cloudsql
+            defaultMode: 420
+        - name: cloudsql
+          emptyDir: {}
+        - name: ssl-certs
+          hostPath:
+            path: /etc/ssl/certs
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: retailer
+  name: app
+  namespace: retailer
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+    - 209.118.184.61/32
+    - 209.118.184.62/32
+    - 52.9.20.60/32
+  ports:
+    - name: grpc-port
+      port: 8120
+      protocol: TCP
+      targetPort: 8120
+    - name: json-port
+      port: 8121
+      protocol: TCP
+      targetPort: 8121
+  selector:
+    app: retailer
+  sessionAffinity: None

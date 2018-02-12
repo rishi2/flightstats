@@ -1,0 +1,27 @@
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: retailer-app
+  name: retailer-app
+  namespace: default
+spec:
+  ports:
+    - name: grpc-port
+      protocol: TCP
+      port: 8120
+      targetPort: 8120
+    - name: server-port
+      protocol: TCP
+      port: 8121
+      targetPort: 8121
+  loadBalancerSourceRanges:
+    - 209.118.184.61/32
+    - 209.118.184.62/32
+    - 52.9.20.60/32
+  selector:
+    app: retailer-app
+  sessionAffinity: None
+  type: LoadBalancer

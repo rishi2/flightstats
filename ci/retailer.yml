@@ -1,0 +1,76 @@
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: retailer-app
+  name: retailer-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: retailer-app
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: retailer-app
+      name: retailer-app
+    spec:
+      containers:
+        - name: retailer-app
+          image: gcr.io/polaris-dev/retailer:<<REVISION>>
+          imagePullPolicy: Always
+          env:
+            - name: GRPC_PORT
+              value: "8120"
+            - name: SERVER_PORT
+              value: "8121"
+            - name: DB_CONN_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: retailer-app-secrets
+                  key: db-conn-string
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: retailer-app-secrets
+                  key: postgres-username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: retailer-app-secrets
+                  key: postgres-password
+            - name: SPRING_PROFILES
+              value: prod
+            - name: DDL_AUTO
+              value: create-drop
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: LOG_LEVEL_ROOT
+              value: INFO
+            - name: RECEIPT_HOST
+              value: "localhost"
+            - name: RECEIPT_PORT
+              value: "8060"
+            - name: ORDER_HOST
+              value: "localhost"
+            - name: ORDER_PORT
+              value: "8065"
+            - name: NEW_RELIC_APP_NAME
+              value: Retailer
+            - name: NEW_RELIC_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: new-relic-secrets
+                  key: new-relic-license-key
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

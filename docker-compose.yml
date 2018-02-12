@@ -1,0 +1,44 @@
+---
+# DO NOT EDIT
+# Automatically generated from the following template in wrsinc/etc:
+# https://github.com/wrsinc/etc/blob/master/roles/docker/templates/docker-compose.yml.j2
+
+# retailer
+
+version: '2'
+services:
+  app:
+    image: gcr.io/poc-tier1/retailer
+    build:
+      context: .
+    ports:
+      - "8120:8120"
+      - "8121:8121"
+    links:
+      - postgres
+    environment:
+      - NEW_RELIC_LICENSE_KEY="ask-PRODOPS-if-you-don't-know-it"
+      - NEW_RELIC_APP_NAME=Retailer
+      - GRPC_PORT=8120
+      - SERVER_PORT=8121
+      - DB_CONN_STRING=jdbc:postgresql://postgres:5432/retailer
+      - DATASOURCE_NAME=jdbc:postgresql://postgres:5432/retailer
+      - POSTGRES_USER=retailer
+      - POSTGRES_PASSWORD=retailer
+      - SPRING_PROFILES=prod
+      - SPRING_DATASOURCE_USERNAME=retailer
+      - DDL_AUTO=create-drop
+      - LOG_LEVEL=DEBUG
+      - LOG_LEVEL_ROOT=INFO
+      - RECEIPT_HOST=localhost
+      - RECEIPT_PORT=8060
+      - ORDER_HOST=localhost
+      - ORDER_PORT=6565
+    entrypoint: ./entrypoint.sh
+    volumes:
+      - ./settings.xml:/usr/src/app/settings.xml
+  postgres:
+    image: postgres:9.6-alpine
+    environment:
+      - POSTGRES_USER=retailer
+      - POSTGRES_PASSWORD=retailer

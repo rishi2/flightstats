@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+main() {
+  # TODO: replace the project with your project ID
+  local project=polaris-dev
+  # Copied from the official install instructions on https://cloud.google.com/sdk/downloads#apt-get
+  #install the sdk if not cached
+  if [ ! -d $SEMAPHORE_CACHE_DIR/google-cloud-sdk ]; then
+  wget -P $SEMAPHORE_CACHE_DIR https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-135.0.0-linux-x86_64.tar.gz
+  tar -xvf $SEMAPHORE_CACHE_DIR/google-cloud-sdk-135.0.0-linux-x86_64.tar.gz -C $SEMAPHORE_CACHE_DIR
+  $SEMAPHORE_CACHE_DIR/google-cloud-sdk/install.sh -q
+  source $SEMAPHORE_CACHE_DIR/google-cloud-sdk/path.bash.inc
+  gcloud components update --quiet
+  gcloud --quiet components update kubectl
+  gcloud --quiet components update beta
+  fi
+  # Add gcloud to $PATH
+  source $SEMAPHORE_CACHE_DIR/google-cloud-sdk/path.bash.inc
+
+  # de: es gibt ein großes problem mit archive
+  sudo sed -i -re 's/de\.archive\.ubuntu\.com/archive.ubuntu.com/g' /etc/apt/sources.list
+
+  sudo apt-get -qq update
+  sudo apt-get -qq install -y apt-transport-https
+  GOOGLE_APPLICATION_CREDENTIALS=/home/runner/auth.json
+  # Copied from the docker-compose docs:
+  sudo curl -L "https://github.com/docker/compose/releases/download/1.9.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+  gcloud --version
+  kubectl version -c
+  docker-compose --version
+
+  echo "Authenticating gcloud service account"
+  gcloud auth activate-service-account \
+    --key-file "${GOOGLE_APPLICATION_CREDENTIALS}" \
+    --project "${project}"
+
+  echo "Authenticating to GCR"
+  gcloud docker --authorize-only --project "${project}"
+
+  echo "Configuring kubectl"
+  gcloud container clusters get-credentials "${KUBE_CLUSTER}" \
+    --project "${project}" \
+    --zone us-west1-a
+}
+
+main "$@"
