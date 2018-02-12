@@ -1,0 +1,41 @@
+syntax ="proto3";
+
+package flight.service.common;
+
+option go_package = "github.com/wrsinc/gogenproto/flight/service/common";
+option java_package = "io.polarisdev.flight.proto.service.common";
+option java_outer_classname = "CommonProto";
+option objc_class_prefix = "PLRS";
+
+import "ptypes/timestamp/timestamp.proto";
+import "flight/enums/flightstatus/flight_status.proto";
+
+message Airline {
+  reserved 1, 2;
+
+  string code  = 3;
+  string flight_number = 4;
+}
+
+message Airport {
+  reserved 1 to 4;
+
+  string code = 5;
+}
+
+message FlightDetail {
+  Airline airline = 1;
+
+  reserved 2 to 7;
+
+  flight.enums.flightstatus.FlightStatus flight_status = 8;
+
+  reserved 9 to 13;
+
+  string departureGate = 14;
+  string departureAirportCode = 15;
+  google.protobuf.Timestamp departureDate = 16;
+
+  string arrivalAirportCode = 17;
+  google.protobuf.Timestamp arrivalDate = 18;
+}

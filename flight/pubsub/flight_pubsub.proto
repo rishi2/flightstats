@@ -1,0 +1,33 @@
+syntax ="proto3";
+
+package flight.pubsub;
+
+option go_package = "github.com/wrsinc/gogenproto/flight/pubsub";
+option java_package = "io.polarisdev.flight.proto.pubsub";
+option java_outer_classname = "FlightPubsub";
+option objc_class_prefix = "PLRS";
+
+import "ptypes/timestamp/timestamp.proto";
+import "flight/service/common/common.proto";
+
+message FlightNotification {
+
+  // Unique Id of the user which is mapped with the Rule Id. 
+  // It could be anything in the form of partyId, phoneNumber etc
+  string party_id = 1;
+
+  // Flight update subscription identifier
+  string registration_id = 2;
+
+  // Departure Airline
+  flight.service.common.Airline departure_airline = 3;
+
+  // Departure Airport
+  flight.service.common.Airport departure_airport = 4;
+
+  // Departure Date
+  google.protobuf.Timestamp actual_departure_date = 5;
+
+  // flight updated info coming in alert
+  repeated string updated_flight_info = 6;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package flight.service;
+
+option go_package = "github.com/wrsinc/gogenproto/flight/service";
+option java_package = "io.polarisdev.flight.proto.service";
+option java_outer_classname = "FlightService";
+option objc_class_prefix = "PLRS";
+
+import "flight/service/flightstatus/flight_status.proto";
+
+service Flight {
+  rpc FindFlightStatus (flightstatus.FindFlightStatusRequest) returns (flightstatus.FindFlightStatusResponse);
+}

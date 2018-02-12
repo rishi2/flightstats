@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package flight.service.flightstatus;
+
+option go_package = "github.com/wrsinc/gogenproto/flight/service/flightstatus";
+option java_package = "io.polarisdev.flight.proto.service.flightstatus";
+option java_outer_classname = "FlightStatusProto";
+option objc_class_prefix = "PLRS";
+
+import "flight/service/common/common.proto";
+import "ptypes/timestamp/timestamp.proto";
+
+message FindFlightStatusRequest {
+  common.Airline airline = 1;
+  google.protobuf.Timestamp departure_date = 2;
+  string departure_airport_code = 3;
+  string arrival_airport_code = 4;
+}
+
+message FindFlightStatusResponse {
+  enum Status {
+    UNKOWN = 0;
+    SUCCESS = 1;
+    NOT_FOUND = 2;
+    ERROR = 3;
+  }
+
+  Status status = 1;
+  repeated common.FlightDetail flight_detail = 2;
+}

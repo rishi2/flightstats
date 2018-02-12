@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package flight.enums.flightstatus;
+
+option go_package = "github.com/wrsinc/gogenproto/flight/enums/flightstatus";
+option java_package = "io.polarisdev.flight.proto.enums.flightstatus";
+option java_outer_classname = "FlightStatusEnum";
+option objc_class_prefix = "PLRS";
+
+enum FlightStatus {
+  // FlightStats cannot determine the final status of a flight from a 
+  // data source in a reasonable amount of time 
+  UNKNOWN = 0;
+
+  // Flight has been cancelled
+  CANCELLED = 1;
+
+  // Active flights represent a push back from gate and airborne flights
+  ACTIVE = 2;
+
+  // Flight landed at an unscheduled airport
+  DIVERTED = 3;
+  
+  // Need of sources to get status of flight
+  DATA_SOURCE_NEEDED = 4;
+
+  // Flight landed at the scheduled airport.
+  LANDED = 5;
+
+  // Flight appears to be from an outdated schedule or flight plan
+  NOT_OPERATIONAL = 6;
+
+  // Flight is in the air and has changed its destination to an 
+  // unscheduled airport
+  REDIRECTED = 7;
+
+  // Flight that is anticipated to depart and arrive according to either filed 
+  // flight plans or published flight schedules
+  SCHEDULED = 8;
+
+  // reserved 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19;
+}
